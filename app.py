@@ -21,7 +21,7 @@ def load_shared_data():
             # Jika file rusak, gunakan fallback default di bawah
             pass
             
-    # Data bawaan awal jika file JSON belum terbentuk
+    # Data bawaan awal jika file JSON belum terbentuk atau tereset oleh server
     return {
         "database": [
             {
@@ -249,6 +249,47 @@ with tab_admin:
                             st.rerun()
 
         st.write("---")
+        st.markdown("### 💾 Cadangkan & Pulihkan Data (Anti Terhapus Server)")
+        with st.expander("💾 Buka Menu Backup / Restore Database"):
+            st.write("Gunakan fitur ini untuk menyimpan salinan data Anda ke laptop agar tidak hilang saat server Streamlit di-restart otomatis.")
+            
+            col_backup, col_restore = st.columns(2)
+            
+            with col_backup:
+                st.markdown("**1. Unduh Cadangan (Backup)**")
+                # Mengubah data Python menjadi format teks JSON
+                backup_json_str = json.dumps(shared_data, indent=4)
+                st.download_button(
+                    label="📥 Unduh File Data (.json)",
+                    data=backup_json_str,
+                    file_name="resolve_app_backup.json",
+                    mime="application/json",
+                    use_container_width=True,
+                    help="Klik untuk mengunduh semua topik dan kategori saat ini ke perangkat Anda"
+                )
+                
+            with col_restore:
+                st.markdown("**2. Pulihkan Data (Restore)**")
+                uploaded_file = st.file_uploader(
+                    "Unggah file cadangan (.json) untuk memulihkan:", 
+                    type="json", 
+                    label_visibility="collapsed"
+                )
+                
+                if uploaded_file is not None:
+                    try:
+                        imported_data = json.load(uploaded_file)
+                        # Validasi sederhana kecocokan struktur file cadangan
+                        if "database" in imported_data and "categories" in imported_data:
+                            save_shared_data(imported_data)
+                            st.success("✅ Sukses! Semua data berhasil dipulihkan.")
+                            st.rerun()
+                        else:
+                            st.error("Format file tidak sesuai dengan struktur Resolve App.")
+                    except Exception as e:
+                        st.error(f"Gagal memproses file cadangan: {e}")
+
+        st.write("---")
         st.markdown("### 📋 Daftar Kelola Topik Saat Ini")
         
         if db_list:
@@ -279,4 +320,4 @@ with tab_admin:
             
     else:
         st.warning("⚠️ Akses Dibatasi!")
-        st.info("Menu manajemen data (tambah, edit, dan hapus topik) hanya dapat diakses oleh Admin. Silakan masukkan password **Admin** terlebih dahulu pada kolom di sidebar sebelah kiri.")
+        st.info("Menu manajemen data (tambah, edit, hapus, dan backup) hanya dapat diakses oleh Admin. Silakan masukkan password **Admin** terlebih dahulu pada kolom di sidebar sebelah kiri.")
