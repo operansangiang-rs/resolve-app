@@ -18,20 +18,24 @@ def load_shared_data():
             with open(DB_FILE, "r") as f:
                 return json.load(f)
         except Exception:
-            # Jika file rusak, gunakan fallback default di bawah
+            # Jika file rusak atau baru dideploy, abaikan dan pakai default di bawah
             pass
             
-    # Data bawaan awal jika file JSON belum terbentuk atau tereset oleh server
+    # =========================================================================
+    # DATA BAWAAN AWAL (HARDCODED DEFAULT DATA)
+    # Mas Lian bisa meletakkan data permanen di sini agar TIDAK AKAN PERNAH HILANG 
+    # meskipun server restart atau dideploy ulang oleh GitHub.
+    # =========================================================================
     return {
         "database": [
             {
                 "topik": "Integrasi Sistem Smartplus Pertama Kali",
-                "solusi": "Pastikan semua modul gateway sudah terhubung ke jaringan internet lokal, lalu lakukan sinkronisasi data melalui menu pengaturan di dasbor utama.",
+                "solusi": "1. Pastikan semua modul gateway sudah terhubung ke jaringan internet lokal.\n2. Lakukan sinkronisasi data melalui menu pengaturan di dasbor utama.",
                 "kategori": "Smartplus"
             },
             {
                 "topik": "Kendala Autentikasi Pengguna Smarthis",
-                "solusi": "Lakukan reset cache pada browser atau gunakan mode incognito. Jika masalah berlanjut, hubungi tim infrastruktur untuk verifikasi ulang lisensi aktif.",
+                "solusi": "1. Lakukan reset cache pada browser atau gunakan mode incognito.\n2. Jika masalah berlanjut, hubungi tim infrastruktur untuk verifikasi ulang lisensi aktif.",
                 "kategori": "Smarthis"
             }
         ],
