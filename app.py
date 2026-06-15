@@ -93,7 +93,9 @@ with tab_cari:
             kategori_tag = f"{emoji_tag} {item['kategori']}"
             
             with st.expander(f"📌 {item['topik']} ({kategori_tag})", expanded=True if search_query else False):
-                st.info(item["solusi"])
+                # Mengganti karakter enter (\n) dengan spasi ganda + \n agar dibaca sebagai baris baru oleh Markdown
+                solusi_rapi = item["solusi"].replace("\n", "  \n")
+                st.info(solusi_rapi)
     else:
         st.warning("Maaf, topik atau solusi yang Anda cari tidak ditemukan.")
 
