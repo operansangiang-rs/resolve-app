@@ -8,7 +8,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 2. INISIALISASI DATABASE (Menggunakan Session State agar data tersimpan sementara selama aplikasi berjalan)
+# 2. INISIALISASI DATABASE (Menggunakan Session State agar data tersimpan sementara)
 if "database" not in st.session_state:
     st.session_state.database = [
         {
@@ -26,22 +26,22 @@ if "database" not in st.session_state:
 if "is_admin" not in st.session_state:
     st.session_state.is_admin = False
 
-# 3. SISTEM LOGIN DI SIDEBAR (Khusus Admin)
+# 3. SISTEM AKSES ADMIN TUNGGAL DI SIDEBAR
 st.sidebar.title("🔐 Akses Admin")
 
 if not st.session_state.is_admin:
-    st.sidebar.write("Silakan login untuk menambah topik baru.")
-    username = st.sidebar.text_input("Username Admin", placeholder="Contoh: lian")
-    password = st.sidebar.text_input("Password", type="password", placeholder="Ketik password...")
+    st.sidebar.write("Masukkan password khusus admin untuk menambah/mengelola topik baru.")
+    
+    # Input password khusus admin (Langsung password '123' tanpa perlu mengetik username)
+    admin_password = st.sidebar.text_input("Password Admin", type="password", placeholder="Ketik password di sini...")
     
     if st.sidebar.button("Masuk", use_container_width=True):
-        # Validasi login sesuai permintaan: password default '123'
-        if username.lower() == "lian" and password == "123":
+        if admin_password == "123":
             st.session_state.is_admin = True
             st.sidebar.success("Login Berhasil! Selamat datang Mas Lian.")
             st.rerun()
         else:
-            st.sidebar.error("Username atau Password salah!")
+            st.sidebar.error("Password salah! Silakan coba lagi.")
 else:
     st.sidebar.success("Status: Admin Aktif (Mas Lian)")
     if st.sidebar.button("Keluar (Logout)", use_container_width=True):
@@ -61,10 +61,10 @@ tab_cari, tab_tambah = st.tabs(["🔍 Cari Solusi", "➕ Tambah Topik (Khusus Ad
 with tab_cari:
     st.subheader("Pusat Solusi & Troubleshooting")
     
-    # Input pencarian
+    # Input pencarian (Hanya bisa dibaca/dilihat, pengunjung biasa tidak bisa menambah data di sini)
     search_query = st.text_input("Cari topik masalah di sini...", placeholder="Ketik kata kunci (misal: CR-V, desktop, dll)...")
     
-    # Filter pencarian
+    # Filter pencarian secara real-time
     filtered_data = [
         item for item in st.session_state.database 
         if search_query.lower() in item["topik"].lower() or search_query.lower() in item["solusi"].lower()
@@ -84,7 +84,7 @@ with tab_cari:
 with tab_tambah:
     st.subheader("Kelola Solusi Baru")
     
-    # Validasi apakah user sudah login sebagai admin
+    # Validasi apakah user sudah login sebagai admin (Mas Lian)
     if st.session_state.is_admin:
         st.write("Silakan masukkan topik kendala beserta solusinya di bawah ini:")
         
@@ -109,4 +109,4 @@ with tab_tambah:
     else:
         # Tampilan jika user biasa mencoba mengakses menu input
         st.warning("⚠️ Akses Dibatasi!")
-        st.info("Menu menulis topik dan solusi baru ini dikunci untuk umum. Silakan login sebagai **Admin** terlebih dahulu melalui kolom di sidebar sebelah kiri.")
+        st.info("Menu menulis topik dan solusi baru ini dikunci untuk umum. Silakan masukkan password **Admin** terlebih dahulu melalui kolom di sidebar sebelah kiri.")
