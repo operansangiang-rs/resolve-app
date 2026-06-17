@@ -1,5 +1,11 @@
 {
-    "database": [],
+    "database": [
+        {
+            "topik": "edit cppa ppa",
+            "solusi": "login dokter / admin\ncari pasien\ncppt",
+            "kategori": "Smartplus"
+        }
+    ],
     "categories": [
         "Support",
         "Smartplus",
