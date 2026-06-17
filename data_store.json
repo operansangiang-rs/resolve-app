@@ -69,6 +69,11 @@
             "topik": "cek bridging",
             "solusi": "#cek bridging - BUKA dbsupp\n\nSELECT * FROM kiosk_apm_log where id_reg = '1125SA11525'\nSELECT * FROM kiosk_apm_log WHERE no_sep = '0223R0451125V008703'\nSELECT * FROM kiosk_apm_log WHERE no_kartu = '00001370209421'",
             "kategori": "Idrg"
+        },
+        {
+            "topik": "reboot server",
+            "solusi": "Reboot virtual langsung dri server\nKanan nmer 2 dr atas\nPutty 30.4\n\n\nLogin : rssa\nPass : a4mGiang16sa\n\nKlo dri PC server di pasangin monitor \nketik\nsudo su\nenter\nPassword: a4mGiang16sa\nKetik\u00a0reboot\nEnter",
+            "kategori": "Server"
         }
     ],
     "categories": [
