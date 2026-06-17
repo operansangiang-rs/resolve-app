@@ -74,6 +74,11 @@
             "topik": "reboot server",
             "solusi": "Reboot virtual langsung dri server\nKanan nmer 2 dr atas\nPutty 30.4\n\n\nLogin : rssa\nPass : a4mGiang16sa\n\nKlo dri PC server di pasangin monitor \nketik\nsudo su\nenter\nPassword: a4mGiang16sa\nKetik\u00a0reboot\nEnter",
             "kategori": "Server"
+        },
+        {
+            "topik": "add ons mozilla",
+            "solusi": "https://addons.mozilla.org/id/firefox/addon/cors-everywhere/versions/",
+            "kategori": "Support"
         }
     ],
     "categories": [
