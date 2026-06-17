@@ -5,10 +5,14 @@ import requests
 import base64
 
 # =========================================================================
-# 🛠️ MAS LIAN, ISI DATA GITHUB ANDA DI SINI (AGAR DATA TERSIMPAN PERMANEN)
+# 🔐 MENGAMBIL DATA REPO & TOKEN AMAN DARI STREAMLIT SECRETS (GRATIS)
 # =========================================================================
-GITHUB_TOKEN = "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"  # Masukkan Personal Access Token GitHub Anda
-REPO_NAME = "operansangiang-rs/resolve-app"       # Contoh: "yulianto/resolve-app"
+try:
+    GITHUB_TOKEN = st.secrets["github"]["token"]
+    REPO_NAME = st.secrets["github"]["repo"]
+except Exception:
+    GITHUB_TOKEN = ""
+    REPO_NAME = ""
 # =========================================================================
 
 DB_FILE = "data_store.json"
@@ -115,7 +119,7 @@ else:
     
     # Cek konfigurasi GitHub di sidebar sebagai pengingat
     if not GITHUB_TOKEN.startswith("ghp_") or "username" in REPO_NAME:
-        st.sidebar.warning("⚠️ GitHub Token/Repo belum diisi di baris kode paling atas. Data layar masih bersifat sementara!")
+        st.sidebar.warning("⚠️ Hubungkan Streamlit Secrets agar data tersimpan abadi!")
         
     if st.sidebar.button("Keluar (Logout)", use_container_width=True):
         st.session_state.is_admin = False
@@ -220,7 +224,6 @@ with tab_admin:
             st.markdown("### ➕ Tambah Solusi Baru")
             with st.form("form_tambah_solusi", clear_on_submit=True):
                 input_topik = st.text_input("Judul Topik / Masalah Baru:", placeholder="Contoh: Mengatasi Error Login Gagal")
-                # BAGIAN YANG SUDAH DIPERBAIKI (Tanda kutip ditutup dengan benar):
                 input_kategori = st.selectbox("Pilih Kategori:", kategori_pilihan)
                 input_solusi = st.text_area("Solusi Lengkap:", placeholder="Tuliskan langkah-langkah penanganan secara rinci di sini...")
                 
