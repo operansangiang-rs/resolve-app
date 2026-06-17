@@ -8,7 +8,7 @@ import base64
 # 🛠️ MAS LIAN, ISI DATA GITHUB ANDA DI SINI (AGAR DATA TERSIMPAN PERMANEN)
 # =========================================================================
 GITHUB_TOKEN = "ghp_xxxxXXXXXXXXXXXXXXXXXXXXXXXXXXXX"  # Masukkan Personal Access Token GitHub Anda
-REPO_NAME = "username_github_anda/nama_repo_anda"       # Contoh: "yulianto/resolve-app"
+REPO_NAME = "operansangiang-rs/resolve-app"       # Contoh: "yulianto/resolve-app"
 # =========================================================================
 
 DB_FILE = "data_store.json"
