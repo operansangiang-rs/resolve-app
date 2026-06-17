@@ -29,6 +29,11 @@
             "topik": "login sql manager / heidisql",
             "solusi": "sql manager\nhostname = 192.168.30.4 \nusername  = root\npass = dbgiangsa16\ndatabase name = \ndbhis = smarthis\ndbsupp = support dan smartplus",
             "kategori": "Server"
+        },
+        {
+            "topik": "backdate",
+            "solusi": "# backdate #\nSELECT * FROM `trx_reg` WHERE id_reg = '1125SA25419'\n\n#backdatekamar#\nSELECT * FROM trx_reg_kmr WHERE id_reg = '1125SA08878'\n\n#backdate aps#\nSELECT * FROM trx_reg_aps WHERE id_reg = '1125SA26689'",
+            "kategori": "Server"
         }
     ],
     "categories": [
