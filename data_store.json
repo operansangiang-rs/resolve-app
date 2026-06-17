@@ -9,6 +9,11 @@
             "topik": "edit nama dokter salah input target tindakan",
             "solusi": "buka bo\nfinance\ndokter\nedit operator / unit tindakan",
             "kategori": "Smarthis"
+        },
+        {
+            "topik": "restart apache",
+            "solusi": "putty\n30.2\nict / keluarga\nsudo su / keluarga\nbalik lagi = ctrl z\nngelihat load server = top\nrefresh apache = service apache2 restart",
+            "kategori": "Server"
         }
     ],
     "categories": [
