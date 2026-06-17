@@ -19,6 +19,11 @@
             "topik": "link pengajuan tinta",
             "solusi": "https://forms.gle/dWW835ubo8iPNYhFA\n",
             "kategori": "Server"
+        },
+        {
+            "topik": "login server",
+            "solusi": "server login smartplus \n30.10\nuser = edp\npass = keluarga#38\ntop\nload average >1 \n\n30.2\nuser = ict\npass = keluarga\n\n30.8\nuser = terakorp\npass = kebumen38\n\nsupport\n30.2\nuser = ict\npass = keluarga",
+            "kategori": "Server"
         }
     ],
     "categories": [
