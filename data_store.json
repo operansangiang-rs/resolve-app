@@ -24,6 +24,11 @@
             "topik": "login server",
             "solusi": "server login smartplus \n30.10\nuser = edp\npass = keluarga#38\ntop\nload average >1 \n\n30.2\nuser = ict\npass = keluarga\n\n30.8\nuser = terakorp\npass = kebumen38\n\nsupport\n30.2\nuser = ict\npass = keluarga",
             "kategori": "Server"
+        },
+        {
+            "topik": "login sql manager / heidisql",
+            "solusi": "sql manager\nhostname = 192.168.30.4 \nusername  = root\npass = dbgiangsa16\ndatabase name = \ndbhis = smarthis\ndbsupp = support dan smartplus",
+            "kategori": "Server"
         }
     ],
     "categories": [
