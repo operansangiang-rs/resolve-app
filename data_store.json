@@ -14,6 +14,11 @@
             "topik": "restart apache",
             "solusi": "putty\n30.2\nict / keluarga\nsudo su / keluarga\nbalik lagi = ctrl z\nngelihat load server = top\nrefresh apache = service apache2 restart",
             "kategori": "Server"
+        },
+        {
+            "topik": "link pengajuan tinta",
+            "solusi": "https://forms.gle/dWW835ubo8iPNYhFA\n",
+            "kategori": "Server"
         }
     ],
     "categories": [
