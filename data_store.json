@@ -59,6 +59,11 @@
             "topik": "backdate tanggal paket",
             "solusi": "#backdate tanggal paket\n\nSELECT * FROM trx_reg_paket WHERE id_reg ='1125SA26689'\n\nSELECT * FROM trx_reg_fmk WHERE id_reg ='1125SA26689'",
             "kategori": "Smarthis"
+        },
+        {
+            "topik": "hapus komponen tindakan ",
+            "solusi": "#hapus komponen tindakan \n\nselect * from trx_reg_act where id_reg ='1125SA26689'",
+            "kategori": "Smarthis"
         }
     ],
     "categories": [
