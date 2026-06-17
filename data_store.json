@@ -39,6 +39,11 @@
             "topik": "kamar terkunci smarthis ranap",
             "solusi": "# cari kamar yang terkunci - id statusnya rubah jadi 1 # id_bed itu bed nya nmer berapa\n\nSELECT * FROM mst_kamar_bed WHERE id_kamar = '459' AND id_bed = '1'",
             "kategori": "Smarthis"
+        },
+        {
+            "topik": "cari resep dengan id resep",
+            "solusi": "#cari resep dengan id resep#\n\nSELECT * FROM trx_frm_resep WHERE id_resep\u00a0=\u00a0'1125SA26689 '",
+            "kategori": "Smarthis"
         }
     ],
     "categories": [
