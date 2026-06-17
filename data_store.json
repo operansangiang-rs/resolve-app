@@ -54,6 +54,11 @@
             "topik": "backdate tanggal invoice",
             "solusi": "#backdate tanggal invoice (pakai nomer no.inv bukan noreg)\n\nSELECT * FROM trx_reg_inv WHERE id_inv = '0825SA21959'",
             "kategori": "Smarthis"
+        },
+        {
+            "topik": "backdate tanggal paket",
+            "solusi": "#backdate tanggal paket\n\nSELECT * FROM trx_reg_paket WHERE id_reg ='1125SA26689'\n\nSELECT * FROM trx_reg_fmk WHERE id_reg ='1125SA26689'",
+            "kategori": "Smarthis"
         }
     ],
     "categories": [
