@@ -18,13 +18,12 @@ def load_shared_data():
             with open(DB_FILE, "r") as f:
                 return json.load(f)
         except Exception:
-            # Jika file rusak atau baru dideploy, abaikan dan pakai default di bawah
             pass
             
     # =========================================================================
-    # DATA BAWAAN AWAL (HARDCODED DEFAULT DATA)
-    # Mas Lian bisa meletakkan data permanen di sini agar TIDAK AKAN PERNAH HILANG 
-    # meskipun server restart atau dideploy ulang oleh GitHub.
+    # MASTER DATA BAWAAN AWAL (ANTI TERHAPUS SERVER)
+    # Mas Lian silakan langsung isi/tambah data operasional permanen di bawah ini.
+    # Begitu di-save, data ini aman selamanya walau server gratisan restart.
     # =========================================================================
     return {
         "database": [
@@ -37,6 +36,12 @@ def load_shared_data():
                 "topik": "Kendala Autentikasi Pengguna Smarthis",
                 "solusi": "1. Lakukan reset cache pada browser atau gunakan mode incognito.\n2. Jika masalah berlanjut, hubungi tim infrastruktur untuk verifikasi ulang lisensi aktif.",
                 "kategori": "Smarthis"
+            },
+            # --- MAS LIAN BISA TAMBAH DATANYA DI SINI SPERTI FORMAT DI ATAS ---
+            {
+                "topik": "Contoh Topik Tambahan Mas Lian",
+                "solusi": "1. Langkah pertama.\n2. Langkah kedua.",
+                "kategori": "Support"
             }
         ],
         "categories": ["Support", "Smartplus", "Smarthis"]
@@ -76,7 +81,7 @@ else:
     st.sidebar.success("Status: Admin Aktif (Mas Lian)")
     if st.sidebar.button("Keluar (Logout)", use_container_width=True):
         st.session_state.is_admin = False
-        st.session_state.editing_index = None  # Reset status edit saat logout
+        st.session_state.editing_index = None
         st.sidebar.info("Anda telah logout.")
         st.rerun()
 
@@ -89,20 +94,17 @@ tab_cari, tab_admin = st.tabs(["🔍 Cari Solusi", "⚙️ Panel Admin (Khusus A
 with tab_cari:
     st.subheader("Pusat Solusi & Troubleshooting")
     
-    # Input pencarian data secara real-time dengan tombol Sinkronisasi Manual
     col_search_input, col_sync_btn = st.columns([8, 2])
     with col_search_input:
         search_query = st.text_input("Cari topik masalah di sini...", placeholder="Ketik kata kunci (misal: Smartplus, integrasi, dll)...")
     with col_sync_btn:
-        st.write("") # Spacing layout agar sejajar
-        st.write("") # Spacing layout agar sejajar
-        if st.button("🔄 Sinkron", use_container_width=True, help="Klik untuk memuat ulang data terbaru dari browser sebelah"):
+        st.write("")
+        st.write("")
+        if st.button("🔄 Sinkron", use_container_width=True, help="Klik untuk memuat ulang data terbaru"):
             st.rerun()
             
-    # Filter kategori dinamis
     filter_kategori = st.selectbox("Filter Kategori:", ["Semua Kategori"] + categories_list)
     
-    # Proses pencarian dan pemfilteran data
     filtered_data = []
     for item in db_list:
         match_query = search_query.lower() in item["topik"].lower() or search_query.lower() in item["solusi"].lower()
@@ -113,21 +115,18 @@ with tab_cari:
             
     st.write(f"Menampilkan **{len(filtered_data)}** solusi yang cocok:")
     
-    # Menampilkan hasil filter ke dalam box expander
     if filtered_data:
         for index, item in enumerate(filtered_data):
-            # Warna penanda kategori dinamis menggunakan emoji berdasarkan indeksnya
             emojis = ["🟢", "🔵", "🟣", "🟡", "🟠", "🔴", "🟤", "⚫"]
             try:
                 idx_kat = categories_list.index(item['kategori']) % len(emojis)
                 emoji_tag = emojis[idx_kat]
             except ValueError:
-                emoji_tag = "⚪" # Fallback jika kategori tidak ditemukan/terhapus
+                emoji_tag = "⚪"
                 
             kategori_tag = f"{emoji_tag} {item['kategori']}"
             
             with st.expander(f"📌 {item['topik']} ({kategori_tag})", expanded=True if search_query else False):
-                # Mengganti karakter enter (\n) dengan spasi ganda + \n agar dibaca sebagai baris baru oleh Markdown
                 solusi_rapi = item["solusi"].replace("\n", "  \n")
                 st.info(solusi_rapi)
     else:
@@ -137,12 +136,10 @@ with tab_admin:
     st.subheader("Pusat Kontrol & Manajemen Solusi")
     
     if st.session_state.is_admin:
-        # Pilihan Kategori diambil dari data dinamis
         kategori_pilihan = categories_list
         
         if st.session_state.editing_index is not None:
             idx_edit = st.session_state.editing_index
-            # Pastikan index masih ada di list untuk menghindari error
             if idx_edit < len(db_list):
                 item_edit = db_list[idx_edit]
                 
@@ -151,11 +148,8 @@ with tab_admin:
                 
                 with st.form("form_edit_solusi", clear_on_submit=False):
                     edit_topik = st.text_input("Edit Judul/Topik:", value=item_edit["topik"])
-                    
-                    # Mencari index kategori yang sesuai saat ini
                     default_kat_idx = kategori_pilihan.index(item_edit["kategori"]) if item_edit["kategori"] in kategori_pilihan else 0
                     edit_kategori = st.selectbox("Edit Kategori:", kategori_pilihan, index=default_kat_idx)
-                    
                     edit_solusi = st.text_area("Edit Solusi Lengkap:", value=item_edit["solusi"])
                     
                     col_edit_1, col_edit_2 = st.columns(2)
@@ -168,20 +162,18 @@ with tab_admin:
                         if edit_topik.strip() == "" or edit_solusi.strip() == "":
                             st.error("Gagal mengubah! Judul topik dan isi solusi tidak boleh kosong.")
                         else:
-                            # Terapkan perubahan pada list lokal
                             db_list[idx_edit] = {
                                 "topik": edit_topik,
                                 "solusi": edit_solusi,
                                 "kategori": edit_kategori
                             }
-                            # Simpan perubahan secara permanen ke file JSON
                             save_shared_data({"database": db_list, "categories": categories_list})
-                            st.session_state.editing_index = None  # Selesai mengedit
+                            st.session_state.editing_index = None
                             st.success("Perubahan solusi berhasil disimpan!")
                             st.rerun()
                             
                     if cancel_button:
-                        st.session_state.editing_index = None  # Batalkan edit
+                        st.session_state.editing_index = None
                         st.rerun()
             else:
                 st.session_state.editing_index = None
@@ -199,13 +191,11 @@ with tab_admin:
                     if input_topik.strip() == "" or input_solusi.strip() == "":
                         st.error("Gagal menyimpan! Judul topik dan isi solusi tidak boleh kosong.")
                     else:
-                        # Masukkan data ke list lokal
                         db_list.append({
                             "topik": input_topik,
                             "solusi": input_solusi,
                             "kategori": input_kategori
                         })
-                        # Simpan ke file JSON terpusat
                         save_shared_data({"database": db_list, "categories": categories_list})
                         st.success(f"Sukses! Topik baru '{input_topik}' berhasil ditambahkan.")
                         st.rerun()
@@ -217,8 +207,8 @@ with tab_admin:
             with col_kat_input:
                 new_kat_input = st.text_input("Nama Kategori Baru:", placeholder="Contoh: Hardware, Network, Server...")
             with col_kat_btn:
-                st.write("") # Spacing layout
-                st.write("") # Spacing layout
+                st.write("")
+                st.write("")
                 btn_add_kat = st.button("Tambah", use_container_width=True)
                 
             if btn_add_kat:
@@ -228,9 +218,7 @@ with tab_admin:
                 elif clean_kat in categories_list:
                     st.warning(f"Kategori '{clean_kat}' sudah terdaftar.")
                 else:
-                    # Tambahkan kategori baru ke list lokal
                     categories_list.append(clean_kat)
-                    # Simpan data ke database file JSON
                     save_shared_data({"database": db_list, "categories": categories_list})
                     st.success(f"Kategori '{clean_kat}' berhasil ditambahkan!")
                     st.rerun()
@@ -245,53 +233,43 @@ with tab_admin:
                         if len(categories_list) <= 1:
                             st.error("Gagal! Minimal harus ada 1 kategori di aplikasi.")
                         else:
-                            # Hapus kategori dari list lokal
                             categories_list.remove(kat)
-                            # Simpan ke database file JSON
                             save_shared_data({"database": db_list, "categories": categories_list})
                             st.success(f"Kategori '{kat}' berhasil dihapus!")
                             st.rerun()
 
         st.write("---")
-        st.markdown("### 💾 Cadangkan & Pulihkan Data (Anti Terhapus Server)")
+        st.markdown("### 💾 Cadangkan & Pulihkan Data")
         with st.expander("💾 Buka Menu Backup / Restore Database"):
-            st.write("Gunakan fitur ini untuk menyimpan salinan data Anda ke laptop agar tidak hilang saat server Streamlit di-restart otomatis.")
-            
+            st.write("Gunakan fitur ini untuk mendownload file data mentah jika Anda sewaktu-waktu ingin memindahkan data.")
             col_backup, col_restore = st.columns(2)
             
             with col_backup:
                 st.markdown("**1. Unduh Cadangan (Backup)**")
-                # Mengubah data Python menjadi format teks JSON
                 backup_json_str = json.dumps(shared_data, indent=4)
                 st.download_button(
                     label="📥 Unduh File Data (.json)",
                     data=backup_json_str,
                     file_name="resolve_app_backup.json",
                     mime="application/json",
-                    use_container_width=True,
-                    help="Klik untuk mengunduh semua topik dan kategori saat ini ke perangkat Anda"
+                    use_container_width=True
                 )
                 
             with col_restore:
                 st.markdown("**2. Pulihkan Data (Restore)**")
-                uploaded_file = st.file_uploader(
-                    "Unggah file cadangan (.json) untuk memulihkan:", 
-                    type="json", 
-                    label_visibility="collapsed"
-                )
+                uploaded_file = st.file_uploader("Unggah file cadangan (.json):", type="json", label_visibility="collapsed")
                 
                 if uploaded_file is not None:
                     try:
                         imported_data = json.load(uploaded_file)
-                        # Validasi sederhana kecocokan struktur file cadangan
                         if "database" in imported_data and "categories" in imported_data:
                             save_shared_data(imported_data)
                             st.success("✅ Sukses! Semua data berhasil dipulihkan.")
                             st.rerun()
                         else:
-                            st.error("Format file tidak sesuai dengan struktur Resolve App.")
+                            st.error("Format file tidak sesuai.")
                     except Exception as e:
-                        st.error(f"Gagal memproses file cadangan: {e}")
+                        st.error(f"Gagal memproses file: {e}")
 
         st.write("---")
         st.markdown("### 📋 Daftar Kelola Topik Saat Ini")
@@ -299,28 +277,23 @@ with tab_admin:
         if db_list:
             for i, item in enumerate(db_list):
                 col_text, col_edit, col_del = st.columns([6, 1.5, 1.5])
-                
                 with col_text:
-                    st.markdown(f"**{i+1}. {item['topik']}**  \n*Kategori: {item['kategori']}*")
-                
+                    st.markdown(f"**{i+1}. {item['topik']}** \n*Kategori: {item['kategori']}*")
                 with col_edit:
                     if st.button("✏️ Edit", key=f"btn_edit_{i}", use_container_width=True):
                         st.session_state.editing_index = i
                         st.rerun()
-                        
                 with col_del:
                     if st.button("🗑️ Hapus", key=f"btn_del_{i}", use_container_width=True):
                         topik_deleted = db_list.pop(i)
-                        # Simpan perubahan penghapusan ke database file JSON
                         save_shared_data({"database": db_list, "categories": categories_list})
                         st.success(f"Topik '{topik_deleted['topik']}' berhasil dihapus!")
-                        
                         if st.session_state.editing_index == i:
                             st.session_state.editing_index = None
                         st.rerun()
                 st.write("---")
         else:
-            st.info("Belum ada topik yang terdaftar di sistem. Silakan tambahkan topik pertama Anda di atas.")
+            st.info("Belum ada topik terdaftar.")
             
     else:
         st.warning("⚠️ Akses Dibatasi!")
