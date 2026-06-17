@@ -44,6 +44,11 @@
             "topik": "cari resep dengan id resep",
             "solusi": "#cari resep dengan id resep#\n\nSELECT * FROM trx_frm_resep WHERE id_resep\u00a0=\u00a0'1125SA26689 '",
             "kategori": "Smarthis"
+        },
+        {
+            "topik": "hapus kamar double invoice",
+            "solusi": "#hapus kamar double invoice support bpjs\n\nSELECT * FROM trx_inv_det_bpjs WHERE id_reg = '0325sa25231'",
+            "kategori": "Smarthis"
         }
     ],
     "categories": [
