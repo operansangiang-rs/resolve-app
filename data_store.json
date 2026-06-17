@@ -64,6 +64,11 @@
             "topik": "hapus komponen tindakan ",
             "solusi": "#hapus komponen tindakan \n\nselect * from trx_reg_act where id_reg ='1125SA26689'",
             "kategori": "Smarthis"
+        },
+        {
+            "topik": "cek bridging",
+            "solusi": "#cek bridging - BUKA dbsupp\n\nSELECT * FROM kiosk_apm_log where id_reg = '1125SA11525'\nSELECT * FROM kiosk_apm_log WHERE no_sep = '0223R0451125V008703'\nSELECT * FROM kiosk_apm_log WHERE no_kartu = '00001370209421'",
+            "kategori": "Idrg"
         }
     ],
     "categories": [
