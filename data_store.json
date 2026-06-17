@@ -4,6 +4,11 @@
             "topik": "edit cppa ppa",
             "solusi": "login dokter / admin\ncari pasien\ncppt",
             "kategori": "Smartplus"
+        },
+        {
+            "topik": "edit nama dokter salah input target tindakan",
+            "solusi": "buka bo\nfinance\ndokter\nedit operator / unit tindakan",
+            "kategori": "Smarthis"
         }
     ],
     "categories": [
