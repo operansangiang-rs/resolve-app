@@ -7,7 +7,7 @@ import base64
 # =========================================================================
 # 🛠️ MAS LIAN, ISI DATA GITHUB ANDA DI SINI (AGAR DATA TERSIMPAN PERMANEN)
 # =========================================================================
-GITHUB_TOKEN = "ghp_xxxxXXXXXXXXXXXXXXXXXXXXXXXXXXXX"  # Masukkan Personal Access Token GitHub Anda
+GITHUB_TOKEN = "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"  # Masukkan Personal Access Token GitHub Anda
 REPO_NAME = "operansangiang-rs/resolve-app"       # Contoh: "yulianto/resolve-app"
 # =========================================================================
 
@@ -220,4 +220,129 @@ with tab_admin:
             st.markdown("### ➕ Tambah Solusi Baru")
             with st.form("form_tambah_solusi", clear_on_submit=True):
                 input_topik = st.text_input("Judul Topik / Masalah Baru:", placeholder="Contoh: Mengatasi Error Login Gagal")
-                input_kategori = st.selectbox("Pilih Kategori
+                # BAGIAN YANG SUDAH DIPERBAIKI (Tanda kutip ditutup dengan benar):
+                input_kategori = st.selectbox("Pilih Kategori:", kategori_pilihan)
+                input_solusi = st.text_area("Solusi Lengkap:", placeholder="Tuliskan langkah-langkah penanganan secara rinci di sini...")
+                
+                submit_button = st.form_submit_button("Simpan Solusi Baru", use_container_width=True)
+                
+                if submit_button:
+                    if input_topik.strip() == "" or input_solusi.strip() == "":
+                        st.error("Gagal menyimpan! Judul topik dan isi solusi tidak boleh kosong.")
+                    else:
+                        db_list.append({
+                            "topik": input_topik,
+                            "solusi": input_solusi,
+                            "kategori": input_kategori
+                        })
+                        save_shared_data({"database": db_list, "categories": categories_list})
+                        st.success(f"Sukses! Topik baru '{input_topik}' berhasil disimpan ke GitHub.")
+                        st.rerun()
+        
+        st.write("---")
+        st.markdown("### 📁 Kelola Kategori Aplikasi")
+        with st.expander("⚙️ Buka Menu Tambah / Hapus Kategori"):
+            col_kat_input, col_kat_btn = st.columns([7, 3])
+            with col_kat_input:
+                new_kat_input = st.text_input("Nama Kategori Baru:", placeholder="Contoh: Hardware, Network, Server...")
+            with col_kat_btn:
+                st.write("") 
+                st.write("") 
+                btn_add_kat = st.button("Tambah", use_container_width=True)
+                
+            if btn_add_kat:
+                clean_kat = new_kat_input.strip()
+                if clean_kat == "":
+                    st.error("Nama kategori baru tidak boleh kosong!")
+                elif clean_kat in categories_list:
+                    st.warning(f"Kategori '{clean_kat}' sudah terdaftar.")
+                else:
+                    categories_list.append(clean_kat)
+                    save_shared_data({"database": db_list, "categories": categories_list})
+                    st.success(f"Kategori '{clean_kat}' berhasil ditambahkan!")
+                    st.rerun()
+            
+            st.write("**Daftar Kategori Aktif Saat Ini:**")
+            for kat in categories_list:
+                col_name, col_del_kat = st.columns([8, 2])
+                with col_name:
+                    st.write(f"🔸 {kat}")
+                with col_del_kat:
+                    if st.button("Hapus", key=f"del_kat_{kat}", use_container_width=True):
+                        if len(categories_list) <= 1:
+                            st.error("Gagal! Minimal harus ada 1 kategori di aplikasi.")
+                        else:
+                            categories_list.remove(kat)
+                            save_shared_data({"database": db_list, "categories": categories_list})
+                            st.success(f"Kategori '{kat}' berhasil dihapus!")
+                            st.rerun()
+
+        st.write("---")
+        st.markdown("### 💾 Cadangkan & Pulihkan Data")
+        with st.expander("💾 Buka Menu Backup / Restore Database"):
+            st.write("Gunakan fitur ini untuk mendownload file data mentah jika Anda sewaktu-waktu ingin memindahkan data.")
+            
+            col_backup, col_restore = st.columns(2)
+            
+            with col_backup:
+                st.markdown("**1. Unduh Cadangan (Backup)**")
+                backup_json_str = json.dumps(shared_data, indent=4)
+                st.download_button(
+                    label="📥 Unduh File Data (.json)",
+                    data=backup_json_str,
+                    file_name="resolve_app_backup.json",
+                    mime="application/json",
+                    use_container_width=True
+                )
+                
+            with col_restore:
+                st.markdown("**2. Pulihkan Data (Restore)**")
+                uploaded_file = st.file_uploader(
+                    "Unggah file cadangan (.json) untuk memulihkan:", 
+                    type="json", 
+                    label_visibility="collapsed"
+                )
+                
+                if uploaded_file is not None:
+                    try:
+                        imported_data = json.load(uploaded_file)
+                        if "database" in imported_data and "categories" in imported_data:
+                            save_shared_data(imported_data)
+                            st.success("✅ Sukses! Semua data berhasil dipulihkan.")
+                            st.rerun()
+                        else:
+                            st.error("Format file tidak sesuai.")
+                    except Exception as e:
+                        st.error(f"Gagal memproses file cadangan: {e}")
+
+        st.write("---")
+        st.markdown("### 📋 Daftar Kelola Topik Saat Ini")
+        
+        if db_list:
+            for i, item in enumerate(db_list):
+                col_text, col_edit, col_del = st.columns([6, 1.5, 1.5])
+                
+                with col_text:
+                    st.markdown(f"**{i+1}. {item['topik']}** \n*Kategori: {item['kategori']}*")
+                
+                with col_edit:
+                    if st.button("✏️ Edit", key=f"btn_edit_{i}", use_container_width=True):
+                        st.session_state.editing_index = i
+                        st.rerun()
+                        
+                with col_del:
+                    if st.button("🗑️ Hapus", key=f"btn_del_{i}", use_container_width=True):
+                        topik_deleted = db_list.pop(i)
+                        save_shared_data({"database": db_list, "categories": categories_list})
+                        st.success(f"Topik '{topik_deleted['topik']}' berhasil dihapus!")
+                        
+                        if st.session_state.editing_index == i:
+                            st.session_state.editing_index = None
+                        st.rerun()
+                st.write("---")
+        else:
+            st.info("Belum ada topik yang terdaftar di sistem.")
+            
+    else:
+        st.warning("⚠️ Akses Dibatasi!")
+        st.info("Menu manajemen data (tambah, edit, hapus, dan backup) hanya dapat diakses oleh Admin. Silakan masukkan password **Admin** terlebih dahulu pada kolom di sidebar sebelah kiri.")
