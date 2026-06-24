@@ -62,7 +62,7 @@
         },
         {
             "topik": "hapus komponen tindakan ",
-            "solusi": "#hapus komponen tindakan \n\nselect * from trx_reg_act where id_reg ='1125SA26689'",
+            "solusi": "hapus komponen tindakan \n\nselect * from trx_reg_act where id_reg ='1125SA26689'",
             "kategori": "Smarthis"
         },
         {
