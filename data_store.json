@@ -99,6 +99,11 @@
             "topik": "email operan",
             "solusi": "operan.sangiang@gmail.com\n\npass: RSD@123#",
             "kategori": "Server"
+        },
+        {
+            "topik": "antrian pasien",
+            "solusi": "kalau bisa pkai hdmi dan vga yang onboard\nbuka uc browser seri / versi 6 yang jadul",
+            "kategori": "Browser"
         }
     ],
     "categories": [
