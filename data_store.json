@@ -114,6 +114,11 @@
             "topik": "orthanc radiologi",
             "solusi": "http://192.168.168.38:8042/app/explorer.html\n\nuser : radiologi\npass : sangiang\n\nwajib ada ip 168",
             "kategori": "Browser"
+        },
+        {
+            "topik": "script database",
+            "solusi": "# backdate #\nSELECT * FROM `trx_reg` WHERE id_reg = '0526SA16341'\n#backdatekamar#\nSELECT * FROM trx_reg_kmr WHERE id_reg = '0626SA16466'\n#backdate aps#\nSELECT * FROM trx_reg_aps WHERE id_reg = '1125SA26689'\n#backdate tanggal paket\nSELECT * FROM trx_reg_paket WHERE id_reg ='1125SA26689'\nSELECT * FROM trx_reg_fmk WHERE id_reg ='1125SA26689'\n\n\n# cari kamar yang terkunci - id statusnya rubah jadi 1 # id_bed itu bed nya nmer berapa\nSELECT * FROM mst_kamar_bed WHERE id_kamar = '320' AND id_bed = '1'\n\n#cari resep dengan id resep#\nSELECT * FROM trx_frm_resep WHERE id_resep\u00a0=\u00a0'1125SA26689 '\n\nselect * from trx_frm_resep_det where id_resep = '062619613'\n\n#hapus kamar double invoice support bpjs\nSELECT * FROM trx_inv_det_bpjs WHERE id_reg = '0325sa25231'\n\n#backdate tanggal invoice (pakai nomer no.inv bukan noreg)\nSELECT * FROM trx_reg_inv WHERE id_inv = '0825SA21959'\n\n\n#hapus/edit komponen tindakan \nselect * from trx_reg_act where id_reg ='0626SA16466'\n\n#edit khusus lab\nselect * from trx_lab_sample where id_reg='0526SA04753'\n#-- habis itu cari id samplenya lalu eksekusi lagi pkai script yg dbwah\nselect * from trx_lab_sample_req where id_sample='026051515'\n\n#cek tindakan lab, ono itu id sampel = kalau mau rubah tanggal di smrtplus rubah di validate_on nya\nselect * from trx_sys_res_dt where ono = '026047809'\n# yg dbwah ini klau mau rubah tgl terima sampelnya (ono itu nomer order)\nselect * from trx_sys_res where ono = '026071441'\n\n\n#cek bridging - BUKA dbsupp\nSELECT * FROM kiosk_apm_log where id_reg = '0626SA16199'\nSELECT * FROM kiosk_apm_log WHERE no_sep = '0223R0450626V011967'\nSELECT * FROM kiosk_apm_log WHERE no_kartu = '0002288668296'\n\nSELECT * FROM bridging_log where id_reg\u00a0=\u00a0'1225SA03764'\n\n#kill lockstruk\nbuka suport teramedik, --masterdata,--lockstruct ( yg merah masukin sini )\nkill 3211716;\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+            "kategori": "Server"
         }
     ],
     "categories": [
