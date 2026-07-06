@@ -123,7 +123,7 @@
         {
             "topik": "edit jam lab di smrtplus",
             "solusi": "masuk ke database\ndbhis\n\nselect * from trx_sys_res where ono = '026071441'\n\nono itu no order lab nya",
-            "kategori": "Server"
+            "kategori": "Smartplus"
         }
     ],
     "categories": [
