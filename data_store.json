@@ -109,6 +109,11 @@
             "topik": "email login",
             "solusi": "yu...@gmail.com\nlea_....@yah\njawir.motovlog@gmail.com\nRSD@123#",
             "kategori": "Browser"
+        },
+        {
+            "topik": "orthanc radiologi",
+            "solusi": "http://192.168.168.38:8042/app/explorer.html\n\nuser : radiologi\npass : sangiang\n\nwajib ada ip 168",
+            "kategori": "Browser"
         }
     ],
     "categories": [
