@@ -18,7 +18,7 @@ DB_FILE = "data_store.json"
 st.set_page_config(page_title="Resolve App", page_icon="🛠️", layout="centered")
 
 # =========================================================================
-# FUNGSI DATA (OBFUSCATED UNTUK BYPASS GITHUB 409)
+# FUNGSI DATA (Dengan bypass cache)
 # =========================================================================
 def push_to_github(data):
     url = f"https://api.github.com/repos/{REPO_NAME}/contents/{DB_FILE}"
@@ -34,8 +34,13 @@ def push_to_github(data):
     if sha: payload["sha"] = sha
     
     put_res = requests.put(url, headers=headers, json=payload)
-    return put_res.status_code in [200, 201]
+    if put_res.status_code in [200, 201]:
+        # Hapus cache agar data di tab "Cari Solusi" langsung update
+        st.cache_data.clear()
+        return True
+    return False
 
+@st.cache_data(ttl=1) # TTL 1 detik memaksa refresh setiap saat
 def load_shared_data():
     url = f"https://api.github.com/repos/{REPO_NAME}/contents/{DB_FILE}"
     headers = {"Authorization": f"token {GITHUB_TOKEN}"}
@@ -90,16 +95,10 @@ with tab2:
         
         st.write("---")
         st.subheader("🗑️ Daftar Kelola Data")
-        
         for i, item in enumerate(db_list):
-            # Membuat kolom terpisah: Judul (70%) dan Tombol Hapus (30%)
             col1, col2 = st.columns([0.7, 0.3])
-            
-            with col1:
-                st.write(f"**{i+1}. {item['topik']}**")
-            
+            col1.write(f"**{i+1}. {item['topik']}**")
             with col2:
-                # Tombol hapus berdiri sendiri
                 if st.button("Hapus Data", key=f"del_{i}", type="primary"):
                     db_list.pop(i)
                     if push_to_github({"database": db_list, "categories": categories_list}):
