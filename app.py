@@ -5,7 +5,7 @@ import requests
 import base64
 
 # =========================================================================
-# 🔐 MENGAMBIL DATA REPO & TOKEN AMAN DARI STREAMLIT SECRETS (GRATIS)
+# 🔐 KONFIGURASI
 # =========================================================================
 try:
     GITHUB_TOKEN = st.secrets["github"]["token"]
@@ -13,7 +13,6 @@ try:
 except Exception:
     GITHUB_TOKEN = ""
     REPO_NAME = ""
-# =========================================================================
 
 DB_FILE = "data_store.json"
 
@@ -25,10 +24,9 @@ st.set_page_config(
 )
 
 # =========================================================================
-# FUNGSI OTOMATIS SYNC KE GITHUB (ANTI REBOOT/TERHAPUS)
+# FUNGSI DATA PERSISTENCE (GitHub Sync)
 # =========================================================================
 def push_to_github(data):
-    """Mengirim dan memperbarui file data_store.json langsung ke repositori GitHub."""
     if GITHUB_TOKEN.startswith("ghp_") and "/" in REPO_NAME:
         try:
             url = f"https://api.github.com/repos/{REPO_NAME}/contents/{DB_FILE}"
@@ -36,316 +34,105 @@ def push_to_github(data):
                 "Authorization": f"token {GITHUB_TOKEN}",
                 "Accept": "application/vnd.github.v3+json"
             }
-            
-            # 1. Ambil SHA file lama dari GitHub
             res = requests.get(url, headers=headers)
             sha = res.json().get("sha") if res.status_code == 200 else None
             
-            # 2. Encode data JSON baru ke Base64
             json_string = json.dumps(data, indent=4)
             content_base64 = base64.b64encode(json_string.encode("utf-8")).decode("utf-8")
             
-            # 3. Push/Commit balik ke GitHub
             payload = {
-                "message": "Sistem: Update data_store.json dari aplikasi",
+                "message": "Sistem: Update data_store.json",
                 "content": content_base64
             }
             if sha:
                 payload["sha"] = sha
-                
             requests.put(url, headers=headers, json=payload)
         except Exception as e:
-            print(f"Gagal sinkronisasi ke GitHub: {e}")
+            st.error(f"Gagal push ke GitHub: {e}")
 
 def load_shared_data():
-    """Membaca data terpusat dari file JSON agar tersambung antar-browser."""
+    """Mengambil data dari GitHub agar selalu terupdate."""
+    url = f"https://api.github.com/repos/{REPO_NAME}/contents/{DB_FILE}"
+    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+    
+    try:
+        res = requests.get(url, headers=headers)
+        if res.status_code == 200:
+            content = base64.b64decode(res.json().get("content")).decode("utf-8")
+            data = json.loads(content)
+            # Simpan lokal agar cepat
+            with open(DB_FILE, "w") as f:
+                json.dump(data, f, indent=4)
+            return data
+    except:
+        pass
+    
+    # Fallback ke lokal jika gagal ambil dari GitHub
     if os.path.exists(DB_FILE):
-        try:
-            with open(DB_FILE, "r") as f:
-                return json.load(f)
-        except Exception:
-            pass
+        with open(DB_FILE, "r") as f:
+            return json.load(f)
             
-    return {
-        "database": [
-            {
-                "topik": "Integrasi Sistem Smartplus Pertama Kali",
-                "solusi": "1. Pastikan semua modul gateway sudah terhubung ke jaringan internet lokal.\n2. Lakukan sinkronisasi data melalui menu pengaturan di dasbor utama.",
-                "kategori": "Smartplus"
-            },
-            {
-                "topik": "Kendala Autentikasi Pengguna Smarthis",
-                "solusi": "1. Lakukan reset cache pada browser atau gunakan mode incognito.\n2. Jika masalah berlanjut, hubungi tim infrastruktur untuk verifikasi ulang lisensi aktif.",
-                "kategori": "Smarthis"
-            }
-        ],
-        "categories": ["Support", "Smartplus", "Smarthis"]
-    }
+    return {"database": [], "categories": ["Support", "Smartplus", "Smarthis"]}
 
 def save_shared_data(data):
-    """Menyimpan data langsung ke file JSON lokal dan memicu push ke GitHub."""
     with open(DB_FILE, "w") as f:
         json.dump(data, f, indent=4)
-    # Picu penyimpanan abadi ke GitHub
     push_to_github(data)
 
-# Memuat data terbaru dari database file di setiap interaksi/rerun
+# Load data
 shared_data = load_shared_data()
 db_list = shared_data["database"]
 categories_list = shared_data["categories"]
 
-# State UI yang tetap unik untuk masing-masing browser
-if "is_admin" not in st.session_state:
-    st.session_state.is_admin = False
+# State management
+if "is_admin" not in st.session_state: st.session_state.is_admin = False
+if "editing_index" not in st.session_state: st.session_state.editing_index = None
 
-if "editing_index" not in st.session_state:
-    st.session_state.editing_index = None
-
+# UI
 st.sidebar.title("🔐 Akses Admin")
-
 if not st.session_state.is_admin:
-    st.sidebar.write("Masukkan password admin untuk mengaktifkan fitur Tambah, Edit, dan Hapus topik.")
-    admin_password = st.sidebar.text_input("Password Admin", type="password", placeholder="Ketik password di sini...")
-    
-    if st.sidebar.button("Masuk", use_container_width=True):
+    admin_password = st.sidebar.text_input("Password Admin", type="password")
+    if st.sidebar.button("Masuk"):
         if admin_password == "123":
             st.session_state.is_admin = True
-            st.sidebar.success("Login Berhasil! Selamat datang Mas Lian.")
             st.rerun()
-        else:
-            st.sidebar.error("Password salah! Silakan coba lagi.")
 else:
-    st.sidebar.success("Status: Admin Aktif (Mas Lian)")
-    
-    # Cek konfigurasi GitHub di sidebar sebagai pengingat
-    if not GITHUB_TOKEN.startswith("ghp_") or "username" in REPO_NAME:
-        st.sidebar.warning("⚠️ Hubungkan Streamlit Secrets agar data tersimpan abadi!")
-        
-    if st.sidebar.button("Keluar (Logout)", use_container_width=True):
+    if st.sidebar.button("Keluar"):
         st.session_state.is_admin = False
-        st.session_state.editing_index = None  
-        st.sidebar.info("Anda telah logout.")
         st.rerun()
 
 st.title("🛠️ Resolve App")
-st.write("Temukan solusi cepat untuk berbagai kendala Support, Smartplus, dan Smarthis Anda.")
-st.markdown("---")
-
-tab_cari, tab_admin = st.tabs(["🔍 Cari Solusi", "⚙️ Panel Admin (Khusus Admin)"])
+tab_cari, tab_admin = st.tabs(["🔍 Cari Solusi", "⚙️ Panel Admin"])
 
 with tab_cari:
-    st.subheader("Pusat Solusi & Troubleshooting")
-    
-    col_search_input, col_sync_btn = st.columns([8, 2])
-    with col_search_input:
-        search_query = st.text_input("Cari topik masalah di sini...", placeholder="Ketik kata kunci (misal: Smartplus, integrasi, dll)...")
-    with col_sync_btn:
-        st.write("") 
-        st.write("") 
-        if st.button("🔄 Sinkron", use_container_width=True, help="Klik untuk memuat ulang data terbaru"):
-            st.rerun()
-            
+    search_query = st.text_input("Cari topik...")
     filter_kategori = st.selectbox("Filter Kategori:", ["Semua Kategori"] + categories_list)
     
-    filtered_data = []
     for item in db_list:
-        match_query = search_query.lower() in item["topik"].lower() or search_query.lower() in item["solusi"].lower()
-        match_category = filter_kategori == "Semua Kategori" or item["kategori"] == filter_kategori
-        
-        if match_query and match_category:
-            filtered_data.append(item)
-            
-    st.write(f"Menampilkan **{len(filtered_data)}** solusi yang cocok:")
-    
-    if filtered_data:
-        for index, item in enumerate(filtered_data):
-            emojis = ["🟢", "🔵", "🟣", "🟡", "🟠", "🔴", "🟤", "⚫"]
-            try:
-                idx_kat = categories_list.index(item['kategori']) % len(emojis)
-                emoji_tag = emojis[idx_kat]
-            except ValueError:
-                emoji_tag = "⚪" 
-                
-            kategori_tag = f"{emoji_tag} {item['kategori']}"
-            
-            with st.expander(f"📌 {item['topik']} ({kategori_tag})", expanded=True if search_query else False):
-                solusi_rapi = item["solusi"].replace("\n", "  \n")
-                st.info(solusi_rapi)
-    else:
-        st.warning("Maaf, topik atau solusi yang Anda cari tidak ditemukan.")
+        if (search_query.lower() in item["topik"].lower()) and (filter_kategori == "Semua Kategori" or item["kategori"] == filter_kategori):
+            with st.expander(f"📌 {item['topik']} ({item['kategori']})"):
+                st.info(item["solusi"])
 
 with tab_admin:
-    st.subheader("Pusat Kontrol & Manajemen Solusi")
-    
     if st.session_state.is_admin:
-        kategori_pilihan = categories_list
+        # Form Tambah
+        input_topik = st.text_input("Topik Baru:")
+        input_kategori = st.selectbox("Kategori:", categories_list)
+        input_solusi = st.text_area("Solusi:")
+        if st.button("Simpan Solusi Baru"):
+            db_list.append({"topik": input_topik, "solusi": input_solusi, "kategori": input_kategori})
+            save_shared_data({"database": db_list, "categories": categories_list})
+            st.success("Tersimpan!")
+            st.rerun()
         
-        if st.session_state.editing_index is not None:
-            idx_edit = st.session_state.editing_index
-            if idx_edit < len(db_list):
-                item_edit = db_list[idx_edit]
-                
-                st.write("---")
-                st.markdown("### ✏️ Form Edit Solusi")
-                
-                with st.form("form_edit_solusi", clear_on_submit=False):
-                    edit_topik = st.text_input("Edit Judul/Topik:", value=item_edit["topik"])
-                    default_kat_idx = kategori_pilihan.index(item_edit["kategori"]) if item_edit["kategori"] in kategori_pilihan else 0
-                    edit_kategori = st.selectbox("Edit Kategori:", kategori_pilihan, index=default_kat_idx)
-                    edit_solusi = st.text_area("Edit Solusi Lengkap:", value=item_edit["solusi"])
-                    
-                    col_edit_1, col_edit_2 = st.columns(2)
-                    with col_edit_1:
-                        save_button = st.form_submit_button("Simpan Perubahan", use_container_width=True)
-                    with col_edit_2:
-                        cancel_button = st.form_submit_button("Batal Edit", use_container_width=True)
-                    
-                    if save_button:
-                        if edit_topik.strip() == "" or edit_solusi.strip() == "":
-                            st.error("Gagal mengubah! Judul topik dan isi solusi tidak boleh kosong.")
-                        else:
-                            db_list[idx_edit] = {
-                                "topik": edit_topik,
-                                "solusi": edit_solusi,
-                                "kategori": edit_kategori
-                            }
-                            save_shared_data({"database": db_list, "categories": categories_list})
-                            st.session_state.editing_index = None  
-                            st.success("Perubahan solusi berhasil disimpan dan di-sinkronkan ke GitHub!")
-                            st.rerun()
-                            
-                    if cancel_button:
-                        st.session_state.editing_index = None  
-                        st.rerun()
-            else:
-                st.session_state.editing_index = None
-
-        else:
-            st.markdown("### ➕ Tambah Solusi Baru")
-            with st.form("form_tambah_solusi", clear_on_submit=True):
-                input_topik = st.text_input("Judul Topik / Masalah Baru:", placeholder="Contoh: Mengatasi Error Login Gagal")
-                input_kategori = st.selectbox("Pilih Kategori:", kategori_pilihan)
-                input_solusi = st.text_area("Solusi Lengkap:", placeholder="Tuliskan langkah-langkah penanganan secara rinci di sini...")
-                
-                submit_button = st.form_submit_button("Simpan Solusi Baru", use_container_width=True)
-                
-                if submit_button:
-                    if input_topik.strip() == "" or input_solusi.strip() == "":
-                        st.error("Gagal menyimpan! Judul topik dan isi solusi tidak boleh kosong.")
-                    else:
-                        db_list.append({
-                            "topik": input_topik,
-                            "solusi": input_solusi,
-                            "kategori": input_kategori
-                        })
-                        save_shared_data({"database": db_list, "categories": categories_list})
-                        st.success(f"Sukses! Topik baru '{input_topik}' berhasil disimpan ke GitHub.")
-                        st.rerun()
-        
+        # Daftar Edit/Hapus
         st.write("---")
-        st.markdown("### 📁 Kelola Kategori Aplikasi")
-        with st.expander("⚙️ Buka Menu Tambah / Hapus Kategori"):
-            col_kat_input, col_kat_btn = st.columns([7, 3])
-            with col_kat_input:
-                new_kat_input = st.text_input("Nama Kategori Baru:", placeholder="Contoh: Hardware, Network, Server...")
-            with col_kat_btn:
-                st.write("") 
-                st.write("") 
-                btn_add_kat = st.button("Tambah", use_container_width=True)
-                
-            if btn_add_kat:
-                clean_kat = new_kat_input.strip()
-                if clean_kat == "":
-                    st.error("Nama kategori baru tidak boleh kosong!")
-                elif clean_kat in categories_list:
-                    st.warning(f"Kategori '{clean_kat}' sudah terdaftar.")
-                else:
-                    categories_list.append(clean_kat)
-                    save_shared_data({"database": db_list, "categories": categories_list})
-                    st.success(f"Kategori '{clean_kat}' berhasil ditambahkan!")
-                    st.rerun()
-            
-            st.write("**Daftar Kategori Aktif Saat Ini:**")
-            for kat in categories_list:
-                col_name, col_del_kat = st.columns([8, 2])
-                with col_name:
-                    st.write(f"🔸 {kat}")
-                with col_del_kat:
-                    if st.button("Hapus", key=f"del_kat_{kat}", use_container_width=True):
-                        if len(categories_list) <= 1:
-                            st.error("Gagal! Minimal harus ada 1 kategori di aplikasi.")
-                        else:
-                            categories_list.remove(kat)
-                            save_shared_data({"database": db_list, "categories": categories_list})
-                            st.success(f"Kategori '{kat}' berhasil dihapus!")
-                            st.rerun()
-
-        st.write("---")
-        st.markdown("### 💾 Cadangkan & Pulihkan Data")
-        with st.expander("💾 Buka Menu Backup / Restore Database"):
-            st.write("Gunakan fitur ini untuk mendownload file data mentah jika Anda sewaktu-waktu ingin memindahkan data.")
-            
-            col_backup, col_restore = st.columns(2)
-            
-            with col_backup:
-                st.markdown("**1. Unduh Cadangan (Backup)**")
-                backup_json_str = json.dumps(shared_data, indent=4)
-                st.download_button(
-                    label="📥 Unduh File Data (.json)",
-                    data=backup_json_str,
-                    file_name="resolve_app_backup.json",
-                    mime="application/json",
-                    use_container_width=True
-                )
-                
-            with col_restore:
-                st.markdown("**2. Pulihkan Data (Restore)**")
-                uploaded_file = st.file_uploader(
-                    "Unggah file cadangan (.json) untuk memulihkan:", 
-                    type="json", 
-                    label_visibility="collapsed"
-                )
-                
-                if uploaded_file is not None:
-                    try:
-                        imported_data = json.load(uploaded_file)
-                        if "database" in imported_data and "categories" in imported_data:
-                            save_shared_data(imported_data)
-                            st.success("✅ Sukses! Semua data berhasil dipulihkan.")
-                            st.rerun()
-                        else:
-                            st.error("Format file tidak sesuai.")
-                    except Exception as e:
-                        st.error(f"Gagal memproses file cadangan: {e}")
-
-        st.write("---")
-        st.markdown("### 📋 Daftar Kelola Topik Saat Ini")
-        
-        if db_list:
-            for i, item in enumerate(db_list):
-                col_text, col_edit, col_del = st.columns([6, 1.5, 1.5])
-                
-                with col_text:
-                    st.markdown(f"**{i+1}. {item['topik']}** \n*Kategori: {item['kategori']}*")
-                
-                with col_edit:
-                    if st.button("✏️ Edit", key=f"btn_edit_{i}", use_container_width=True):
-                        st.session_state.editing_index = i
-                        st.rerun()
-                        
-                with col_del:
-                    if st.button("🗑️ Hapus", key=f"btn_del_{i}", use_container_width=True):
-                        topik_deleted = db_list.pop(i)
-                        save_shared_data({"database": db_list, "categories": categories_list})
-                        st.success(f"Topik '{topik_deleted['topik']}' berhasil dihapus!")
-                        
-                        if st.session_state.editing_index == i:
-                            st.session_state.editing_index = None
-                        st.rerun()
-                st.write("---")
-        else:
-            st.info("Belum ada topik yang terdaftar di sistem.")
-            
+        for i, item in enumerate(db_list):
+            col1, col2 = st.columns([8, 2])
+            col1.write(f"{item['topik']}")
+            if col2.button("🗑️", key=f"del_{i}"):
+                db_list.pop(i)
+                save_shared_data({"database": db_list, "categories": categories_list})
+                st.rerun()
     else:
-        st.warning("⚠️ Akses Dibatasi!")
-        st.info("Menu manajemen data (tambah, edit, hapus, dan backup) hanya dapat diakses oleh Admin. Silakan masukkan password **Admin** terlebih dahulu pada kolom di sidebar sebelah kiri.")
+        st.warning("Harap login sebagai Admin.")
