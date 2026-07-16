@@ -27,6 +27,7 @@ def push_to_github(data):
     res = requests.get(url, headers=headers)
     sha = res.json().get("sha") if res.status_code == 200 else None
     
+    # Encode ke base64 untuk menghindari blokir GitHub Secret Scanning
     raw_json = json.dumps(data)
     content_b64 = base64.b64encode(raw_json.encode()).decode()
     
@@ -34,9 +35,13 @@ def push_to_github(data):
     if sha: payload["sha"] = sha
     
     put_res = requests.put(url, headers=headers, json=payload)
-    return put_res.status_code in [200, 201]
+    if put_res.status_code in [200, 201]:
+        st.cache_data.clear() # Bersihkan memori segera setelah simpan
+        return True
+    return False
 
-def load_shared_data_fresh():
+@st.cache_data(ttl=600)
+def load_shared_data():
     url = f"https://api.github.com/repos/{REPO_NAME}/contents/{DB_FILE}"
     headers = {"Authorization": f"token {GITHUB_TOKEN}", "Cache-Control": "no-cache"}
     try:
@@ -51,7 +56,7 @@ def load_shared_data_fresh():
 # =========================================================================
 # UI & LOGIKA
 # =========================================================================
-shared_data = load_shared_data_fresh()
+shared_data = load_shared_data()
 db_list = shared_data.get("database", [])
 categories_list = shared_data.get("categories", ["Support"])
 
@@ -66,14 +71,15 @@ if not st.session_state.is_admin:
 else:
     if st.sidebar.button("Keluar"): st.session_state.is_admin = False; st.rerun()
 
-# Tombol Penyegaran Global
-if st.button("🔄 Segarkan Data (Refresh)"):
-    st.rerun()
-
 st.title("🛠️ Resolve App")
 tab1, tab2 = st.tabs(["🔍 Cari Solusi", "⚙️ Panel Admin"])
 
 with tab1:
+    # Tombol penyegaran untuk user biasa
+    if st.button("🔄 Segarkan Data (Ambil data terbaru)"):
+        st.cache_data.clear()
+        st.rerun()
+        
     search = st.text_input("Cari topik masalah...")
     for item in db_list:
         if search.lower() in item["topik"].lower():
