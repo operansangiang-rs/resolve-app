@@ -18,7 +18,7 @@ DB_FILE = "data_store.json"
 st.set_page_config(page_title="Resolve App", page_icon="🛠️", layout="centered")
 
 # =========================================================================
-# FUNGSI DATA (Dengan bypass cache)
+# FUNGSI DATA
 # =========================================================================
 def push_to_github(data):
     url = f"https://api.github.com/repos/{REPO_NAME}/contents/{DB_FILE}"
@@ -35,15 +35,13 @@ def push_to_github(data):
     
     put_res = requests.put(url, headers=headers, json=payload)
     if put_res.status_code in [200, 201]:
-        # Hapus cache agar data di tab "Cari Solusi" langsung update
-        st.cache_data.clear()
         return True
     return False
 
-@st.cache_data(ttl=1) # TTL 1 detik memaksa refresh setiap saat
-def load_shared_data():
+def load_shared_data_fresh():
+    """Mengambil data langsung dari GitHub tanpa cache"""
     url = f"https://api.github.com/repos/{REPO_NAME}/contents/{DB_FILE}"
-    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+    headers = {"Authorization": f"token {GITHUB_TOKEN}", "Cache-Control": "no-cache"}
     try:
         res = requests.get(url, headers=headers)
         if res.status_code == 200:
@@ -56,7 +54,8 @@ def load_shared_data():
 # =========================================================================
 # UI & LOGIKA
 # =========================================================================
-shared_data = load_shared_data()
+# Memuat data terbaru setiap kali script berjalan
+shared_data = load_shared_data_fresh()
 db_list = shared_data.get("database", [])
 categories_list = shared_data.get("categories", ["Support"])
 
@@ -91,7 +90,7 @@ with tab2:
             db_list.append({"topik": t, "solusi": s, "kategori": k})
             if push_to_github({"database": db_list, "categories": categories_list}):
                 st.success("Tersimpan!")
-                st.rerun()
+                st.rerun() # Ini akan memicu pembacaan ulang data dari GitHub
         
         st.write("---")
         st.subheader("🗑️ Daftar Kelola Data")
@@ -102,6 +101,6 @@ with tab2:
                 if st.button("Hapus Data", key=f"del_{i}", type="primary"):
                     db_list.pop(i)
                     if push_to_github({"database": db_list, "categories": categories_list}):
-                        st.rerun()
+                        st.rerun() # Ini akan memicu pembacaan ulang data dari GitHub
     else:
         st.warning("⚠️ Silakan login di sidebar untuk akses admin.")
