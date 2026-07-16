@@ -24,23 +24,30 @@ def push_to_github(data):
     url = f"https://api.github.com/repos/{REPO_NAME}/contents/{DB_FILE}"
     headers = {"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3+json"}
     
+    # Ambil SHA jika file sudah ada
     res = requests.get(url, headers=headers)
-    sha = res.json().get("sha") if res.status_code == 200 else None
     
-    # Encode ke base64 untuk menghindari blokir GitHub Secret Scanning
     raw_json = json.dumps(data)
     content_b64 = base64.b64encode(raw_json.encode()).decode()
     
-    payload = {"message": "Update data", "content": content_b64}
-    if sha: payload["sha"] = sha
+    payload = {"message": "Update atau buat data", "content": content_b64}
     
+    if res.status_code == 200:
+        # File ada, ambil SHA untuk update
+        sha = res.json().get("sha")
+        payload["sha"] = sha
+    
+    # Kirim request (Create atau Update)
     put_res = requests.put(url, headers=headers, json=payload)
+    
     if put_res.status_code in [200, 201]:
-        st.cache_data.clear() # Bersihkan memori segera setelah simpan
+        st.cache_data.clear()
         return True
-    return False
+    else:
+        st.error(f"Gagal simpan: {put_res.status_code} - {put_res.text}")
+        return False
 
-@st.cache_data(ttl=600)
+@st.cache_data(ttl=60)
 def load_shared_data():
     url = f"https://api.github.com/repos/{REPO_NAME}/contents/{DB_FILE}"
     headers = {"Authorization": f"token {GITHUB_TOKEN}", "Cache-Control": "no-cache"}
@@ -51,6 +58,7 @@ def load_shared_data():
             decoded = base64.b64decode(content.encode()).decode()
             return json.loads(decoded)
     except: pass
+    # Default data jika file belum ada
     return {"database": [], "categories": ["Support", "Smartplus", "Smarthis", "Server", "Browser"]}
 
 # =========================================================================
@@ -58,25 +66,23 @@ def load_shared_data():
 # =========================================================================
 shared_data = load_shared_data()
 db_list = shared_data.get("database", [])
-categories_list = shared_data.get("categories", ["Support"])
+categories_list = shared_data.get("categories", ["Support", "Smartplus", "Smarthis", "Server", "Browser"])
 
 if "is_admin" not in st.session_state: st.session_state.is_admin = False
 
 st.sidebar.title("🔐 Akses Admin")
-if not st.session_state.is_admin:
-    pwd = st.sidebar.text_input("Password", type="password")
-    if st.sidebar.button("Login"):
-        if pwd == "123": st.session_state.is_admin = True; st.rerun()
-        else: st.error("Password Salah!")
-else:
-    if st.sidebar.button("Keluar"): st.session_state.is_admin = False; st.rerun()
+pwd = st.sidebar.text_input("Password", type="password")
+if st.sidebar.button("Login"):
+    if pwd == "123": st.session_state.is_admin = True; st.rerun()
+    else: st.error("Password Salah!")
+
+if st.sidebar.button("Keluar"): st.session_state.is_admin = False; st.rerun()
 
 st.title("🛠️ Resolve App")
 tab1, tab2 = st.tabs(["🔍 Cari Solusi", "⚙️ Panel Admin"])
 
 with tab1:
-    # Tombol penyegaran untuk user biasa
-    if st.button("🔄 Segarkan Data (Ambil data terbaru)"):
+    if st.button("🔄 Segarkan Data"):
         st.cache_data.clear()
         st.rerun()
         
@@ -95,7 +101,7 @@ with tab2:
         if st.button("Simpan Solusi"):
             db_list.append({"topik": t, "solusi": s, "kategori": k})
             if push_to_github({"database": db_list, "categories": categories_list}):
-                st.success("Tersimpan!")
+                st.success("Tersimpan ke GitHub!")
                 st.rerun()
         
         st.write("---")
@@ -104,7 +110,7 @@ with tab2:
             col1, col2 = st.columns([0.7, 0.3])
             col1.write(f"**{i+1}. {item['topik']}**")
             with col2:
-                if st.button("Hapus Data", key=f"del_{i}", type="primary"):
+                if st.button("Hapus", key=f"del_{i}", type="primary"):
                     db_list.pop(i)
                     if push_to_github({"database": db_list, "categories": categories_list}):
                         st.rerun()
