@@ -18,17 +18,15 @@ DB_FILE = "data_store.json"
 st.set_page_config(page_title="Resolve App", page_icon="🛠️", layout="centered")
 
 # =========================================================================
-# FUNGSI DATA (OBFUSCATED UNTUK BYPASS GITHUB)
+# FUNGSI DATA (OBFUSCATED UNTUK BYPASS GITHUB 409)
 # =========================================================================
 def push_to_github(data):
     url = f"https://api.github.com/repos/{REPO_NAME}/contents/{DB_FILE}"
     headers = {"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3+json"}
     
-    # Ambil SHA file yang ada
     res = requests.get(url, headers=headers)
     sha = res.json().get("sha") if res.status_code == 200 else None
     
-    # Encode ke base64 agar aman dari sensor GitHub
     raw_json = json.dumps(data)
     content_b64 = base64.b64encode(raw_json.encode()).decode()
     
@@ -45,7 +43,6 @@ def load_shared_data():
         res = requests.get(url, headers=headers)
         if res.status_code == 200:
             content = res.json().get("content")
-            # Decode base64
             decoded = base64.b64decode(content.encode()).decode()
             return json.loads(decoded)
     except: pass
@@ -85,18 +82,27 @@ with tab2:
         t = st.text_input("Judul:")
         s = st.text_area("Solusi:")
         k = st.selectbox("Kategori:", categories_list)
-        if st.button("Simpan"):
+        if st.button("Simpan Solusi"):
             db_list.append({"topik": t, "solusi": s, "kategori": k})
             if push_to_github({"database": db_list, "categories": categories_list}):
                 st.success("Tersimpan!")
                 st.rerun()
         
         st.write("---")
-        st.subheader("🗑️ Kelola Solusi")
+        st.subheader("🗑️ Daftar Kelola Data")
+        
         for i, item in enumerate(db_list):
-            if st.button(f"Hapus: {item['topik']}", key=f"del_{i}"):
-                db_list.pop(i)
-                if push_to_github({"database": db_list, "categories": categories_list}):
-                    st.rerun()
+            # Membuat kolom terpisah: Judul (70%) dan Tombol Hapus (30%)
+            col1, col2 = st.columns([0.7, 0.3])
+            
+            with col1:
+                st.write(f"**{i+1}. {item['topik']}**")
+            
+            with col2:
+                # Tombol hapus berdiri sendiri
+                if st.button("Hapus Data", key=f"del_{i}", type="primary"):
+                    db_list.pop(i)
+                    if push_to_github({"database": db_list, "categories": categories_list}):
+                        st.rerun()
     else:
         st.warning("⚠️ Silakan login di sidebar untuk akses admin.")
