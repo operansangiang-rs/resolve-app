@@ -34,12 +34,9 @@ def push_to_github(data):
     if sha: payload["sha"] = sha
     
     put_res = requests.put(url, headers=headers, json=payload)
-    if put_res.status_code in [200, 201]:
-        return True
-    return False
+    return put_res.status_code in [200, 201]
 
 def load_shared_data_fresh():
-    """Mengambil data langsung dari GitHub tanpa cache"""
     url = f"https://api.github.com/repos/{REPO_NAME}/contents/{DB_FILE}"
     headers = {"Authorization": f"token {GITHUB_TOKEN}", "Cache-Control": "no-cache"}
     try:
@@ -54,7 +51,6 @@ def load_shared_data_fresh():
 # =========================================================================
 # UI & LOGIKA
 # =========================================================================
-# Memuat data terbaru setiap kali script berjalan
 shared_data = load_shared_data_fresh()
 db_list = shared_data.get("database", [])
 categories_list = shared_data.get("categories", ["Support"])
@@ -69,6 +65,10 @@ if not st.session_state.is_admin:
         else: st.error("Password Salah!")
 else:
     if st.sidebar.button("Keluar"): st.session_state.is_admin = False; st.rerun()
+
+# Tombol Penyegaran Global
+if st.button("🔄 Segarkan Data (Refresh)"):
+    st.rerun()
 
 st.title("🛠️ Resolve App")
 tab1, tab2 = st.tabs(["🔍 Cari Solusi", "⚙️ Panel Admin"])
@@ -90,7 +90,7 @@ with tab2:
             db_list.append({"topik": t, "solusi": s, "kategori": k})
             if push_to_github({"database": db_list, "categories": categories_list}):
                 st.success("Tersimpan!")
-                st.rerun() # Ini akan memicu pembacaan ulang data dari GitHub
+                st.rerun()
         
         st.write("---")
         st.subheader("🗑️ Daftar Kelola Data")
@@ -101,6 +101,6 @@ with tab2:
                 if st.button("Hapus Data", key=f"del_{i}", type="primary"):
                     db_list.pop(i)
                     if push_to_github({"database": db_list, "categories": categories_list}):
-                        st.rerun() # Ini akan memicu pembacaan ulang data dari GitHub
+                        st.rerun()
     else:
         st.warning("⚠️ Silakan login di sidebar untuk akses admin.")
